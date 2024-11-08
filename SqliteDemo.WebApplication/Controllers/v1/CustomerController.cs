@@ -46,5 +46,43 @@ namespace SqliteDemo.WebApplication.Controllers.v1
                 return new ExceptionObjectResult(ex);
             }
         }
+
+        /// <summary>
+        /// 依指定ID查詢顧客資料
+        /// </summary>
+        /// <param name="ID">識別碼</param>
+        /// <returns></returns>
+        [HttpGet("{ID}"), Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<Customer?>> GetCustomersAsync(string ID)
+        {
+            try
+            {
+                var data = await _factory.GetLogic<ICustomerLogic>().GetCustomersAsync(ID, null, null, null, Request.HttpContext.RequestAborted);
+
+                return Ok(data.SingleOrDefault());
+            }
+            catch (Exception ex)
+            {
+                return new ExceptionObjectResult(ex);
+            }
+        }
+
+        /// <summary>
+        /// 新增顧客資料
+        /// </summary>
+        /// <param name="NewCustomer">新顧客資料</param>
+        /// <returns></returns>
+        [HttpPost(""), Produces(MediaTypeNames.Application.Json), Consumes(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<Customer>> AddCustomerAsync(Customer NewCustomer)
+        {
+            try
+            {
+                return Ok(await _factory.GetLogic<ICustomerLogic>().AddCustomerAsync(NewCustomer, Request.HttpContext.RequestAborted));
+            }
+            catch (Exception ex)
+            {
+                return new ExceptionObjectResult(ex);
+            }
+        }
     }
 }
