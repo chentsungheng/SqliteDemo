@@ -13,6 +13,8 @@ namespace SqliteDemo.Logic
         Task<Customer> AddCustomerAsync(Customer NewCustomer, CancellationToken TaskCancellationToken = default);
 
         Task<Customer> UpdateCustomerAsync(string CustomerID, Customer ExistCustomer, CancellationToken TaskCancellationToken = default);
+
+        Task<CustomerDeleted> DeleteCustomerAsync(string CustomerID, CancellationToken TaskCancellationToken = default);
     }
 
     internal class CustomerLogic : DataLogic, ICustomerLogic
@@ -130,7 +132,7 @@ namespace SqliteDemo.Logic
                 using var transaction = OpenTransactionScope(DefaultTimeout);
                 var rows = await context.UpdateCustomerAsync(CustomerID, ExistCustomer, DefaultTimeout, TaskCancellationToken);
 
-                // 新增失敗
+                // 更新失敗
                 if (rows == 0)
                 {
                     throw new SqliteException("Update customer is failed.", 1);
@@ -152,6 +154,40 @@ namespace SqliteDemo.Logic
                 {
                     _operationLock.TryRemove(ExistCustomer.CustomerID, out var _);
                 }
+            }
+        }
+
+        public async Task<CustomerDeleted> DeleteCustomerAsync(string CustomerID, CancellationToken TaskCancellationToken = default)
+        {
+            try
+            {
+                var context = CreateSqliteRepository<ICustomerRepository>();
+                var exists = await context.GetCustomersAsync(CustomerID, null, null, null, DefaultTimeout, TaskCancellationToken);
+
+                // 資料不存在
+                if (!exists.Any())
+                {
+                    throw new InvalidOperationException($"The {nameof(CustomerID)} {CustomerID} is not exists.");
+                }
+
+                var exist = exists.Single();
+                var rows = await context.DeleteCustomerAsync(exist.CustomerID, DefaultTimeout, TaskCancellationToken);
+
+                // 刪除失敗
+                if (rows == 0)
+                {
+                    throw new SqliteException("Delete customer is failed.", 1);
+                }
+
+                return new CustomerDeleted
+                {
+                    CustomerID = exist.CustomerID,
+                    IsDelete = true
+                };
+            }
+            catch (Exception ex)
+            {
+                throw LogException(ex);
             }
         }
     }

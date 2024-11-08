@@ -172,5 +172,21 @@ namespace SqliteDemo.Test.Logic
                 Assert.That(actual.CompanyName, Is.EqualTo(data.CompanyName));
             });
         }
+
+        [Test(Description = "刪除customer"), Ignore("避免存取DB")]
+        public void DeleteCustomerAsync_Success()
+        {
+            var customerID = "TEST12345";
+
+            using var factory = new BusinessLogicFactory();
+            var logic = factory.GetLogic<ICustomerLogic>();
+            var actual = logic.DeleteCustomerAsync(customerID).Result;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(actual.CustomerID, Is.EqualTo(customerID));
+                Assert.That(actual.IsDelete, Is.True);
+            });
+        }
     }
 }
