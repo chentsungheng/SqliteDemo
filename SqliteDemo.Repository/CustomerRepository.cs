@@ -13,6 +13,8 @@ namespace SqliteDemo.Repository
         Task<int> AddCustomerAsync(Customer Data, int Timeout = 30, CancellationToken SqlCancellationToken = default);
 
         Task<int> UpdateCustomerAsync(string CustomerID, Customer Data, int Timeout = 30, CancellationToken SqlCancellationToken = default);
+
+        Task<int> DeleteCustomerAsync(string CustomerID, int Timeout = 30, CancellationToken SqlCancellationToken = default);
     }
 
     internal class CustomerRepository : SqliteRepository, ICustomerRepository
@@ -109,6 +111,17 @@ namespace SqliteDemo.Repository
             command.Append($" WHERE {nameof(CustomerID)} = @{nameof(CustomerID)}");
 
             return await Connection.ExecuteAsync(GetCommand(CommandType.Text, command.ToString(), parameters, null, Timeout, SqlCancellationToken));
+        }
+
+        public async Task<int> DeleteCustomerAsync(string CustomerID, int Timeout = 30, CancellationToken SqlCancellationToken = default)
+        {
+            var command = $"DELETE FROM Customers WHERE {nameof(CustomerID)} = @{nameof(CustomerID)}";
+            var parameters = new
+            {
+                CustomerID
+            };
+
+            return await Connection.ExecuteAsync(GetCommand(CommandType.Text, command, parameters, null, Timeout, SqlCancellationToken));
         }
     }
 }

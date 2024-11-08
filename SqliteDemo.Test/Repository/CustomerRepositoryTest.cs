@@ -64,5 +64,15 @@ namespace SqliteDemo.Test.Repository
 
             Assert.That(actual, Is.GreaterThan(0));
         }
+
+        [Test(Description = "成功刪除資料"), Ignore("避免存取DB")]
+        public void DeleteCustomerAsync_Success()
+        {
+            using var factory = new RepositoryFactory(_settings);
+            var context = factory.GetSqliteRepository<ICustomerRepository>();
+            var actual = context.DeleteCustomerAsync("TEST123").Result;
+
+            Assert.That(actual, Is.GreaterThan(0));
+        }
     }
 }
