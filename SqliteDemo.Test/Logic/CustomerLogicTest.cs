@@ -152,5 +152,25 @@ namespace SqliteDemo.Test.Logic
             fakeRepository.DidNotReceive().AddCustomerAsync(Arg.Compat.Any<Customer>(), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
             fakeRepository.Received().GetCustomersAsync(Arg.Compat.Any<string?>(), Arg.Is(nullString), Arg.Is(nullString), Arg.Is(nullString), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
         }
+
+        [Test(Description = "更新customer"), Ignore("避免存取DB")]
+        public void UpdateCustomerAsync_Success()
+        {
+            var data = new Customer
+            {
+                CustomerID = "TEST12345",
+                CompanyName = _fixture.Create<string>()
+            };
+
+            using var factory = new BusinessLogicFactory();
+            var logic = factory.GetLogic<ICustomerLogic>();
+            var actual = logic.UpdateCustomerAsync(data.CustomerID, data).Result;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(actual.CustomerID, Is.EqualTo(data.CustomerID));
+                Assert.That(actual.CompanyName, Is.EqualTo(data.CompanyName));
+            });
+        }
     }
 }

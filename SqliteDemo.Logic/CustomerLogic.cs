@@ -11,6 +11,8 @@ namespace SqliteDemo.Logic
         Task<IEnumerable<Customer>> GetCustomersAsync(string? CustomerID, string? CompanyName, string? Region, string? PostalCode, CancellationToken TaskCancellationToken = default);
 
         Task<Customer> AddCustomerAsync(Customer NewCustomer, CancellationToken TaskCancellationToken = default);
+
+        Task<Customer> UpdateCustomerAsync(string CustomerID, Customer ExistCustomer, CancellationToken TaskCancellationToken = default);
     }
 
     internal class CustomerLogic : DataLogic, ICustomerLogic
@@ -90,6 +92,65 @@ namespace SqliteDemo.Logic
                 if (islock)
                 {
                     _operationLock.TryRemove(NewCustomer.CustomerID, out var _);
+                }
+            }
+        }
+
+        public async Task<Customer> UpdateCustomerAsync(string CustomerID, Customer ExistCustomer, CancellationToken TaskCancellationToken = default)
+        {
+            var islock = false;
+
+            try
+            {
+                if (string.IsNullOrEmpty(CustomerID))
+                {
+                    throw new ArgumentNullException(nameof(CustomerID));
+                }
+                if (string.IsNullOrEmpty(ExistCustomer.CompanyName))
+                {
+                    throw new ArgumentException($"{nameof(ExistCustomer.CompanyName)} is null or empty.");
+                }
+
+                var context = CreateSqliteRepository<ICustomerRepository>();
+                var exists = await context.GetCustomersAsync(ExistCustomer.CustomerID, null, null, null, DefaultTimeout, TaskCancellationToken);
+
+                // 資料不存在
+                if (!exists.Any())
+                {
+                    throw new InvalidOperationException($"The {nameof(ExistCustomer.CustomerID)} {ExistCustomer.CustomerID} is not exists.");
+                }
+                // 有另一個執行緒正在操作此ID
+                if (!_operationLock.TryAdd(ExistCustomer.CustomerID, "update"))
+                {
+                    throw new InvalidOperationException($"The {nameof(ExistCustomer.CustomerID)} {ExistCustomer.CustomerID} is locked by someone else.");
+                }
+
+                islock = true;
+
+                using var transaction = OpenTransactionScope(DefaultTimeout);
+                var rows = await context.UpdateCustomerAsync(CustomerID, ExistCustomer, DefaultTimeout, TaskCancellationToken);
+
+                // 新增失敗
+                if (rows == 0)
+                {
+                    throw new SqliteException("Update customer is failed.", 1);
+                }
+
+                transaction.Complete();
+
+                exists = await context.GetCustomersAsync(ExistCustomer.CustomerID, null, null, null, DefaultTimeout, TaskCancellationToken);
+
+                return exists.Single();
+            }
+            catch (Exception ex)
+            {
+                throw LogException(ex);
+            }
+            finally
+            {
+                if (islock)
+                {
+                    _operationLock.TryRemove(ExistCustomer.CustomerID, out var _);
                 }
             }
         }
