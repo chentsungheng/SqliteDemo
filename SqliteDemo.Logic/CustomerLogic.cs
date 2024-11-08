@@ -2,6 +2,7 @@
 using SqliteDemo.Logic.Base;
 using SqliteDemo.Model;
 using SqliteDemo.Repository;
+using System.Collections.Concurrent;
 
 namespace SqliteDemo.Logic
 {
@@ -14,6 +15,8 @@ namespace SqliteDemo.Logic
 
     internal class CustomerLogic : DataLogic, ICustomerLogic
     {
+        private static readonly ConcurrentDictionary<string, string> _operationLock = new();
+
         public CustomerLogic(IBusinessLogicFactory BusinessLogicFactory, AppSettings? Settings = null, ILogRecorder? LogRecorder = null, IRepositoryFactory? RepositoryFactory = null) : base(BusinessLogicFactory, Settings, LogRecorder, RepositoryFactory)
         {
         }
@@ -34,6 +37,8 @@ namespace SqliteDemo.Logic
 
         public async Task<Customer> AddCustomerAsync(Customer NewCustomer, CancellationToken TaskCancellationToken = default)
         {
+            var islock = false;
+
             try
             {
                 if (string.IsNullOrEmpty(NewCustomer.CustomerID))
@@ -53,6 +58,13 @@ namespace SqliteDemo.Logic
                 {
                     throw new InvalidOperationException($"The {nameof(NewCustomer.CustomerID)} {NewCustomer.CustomerID} is exists.");
                 }
+                // 有另一個執行緒正在操作此ID
+                if (!_operationLock.TryAdd(NewCustomer.CustomerID, "add"))
+                {
+                    throw new InvalidOperationException($"The {nameof(NewCustomer.CustomerID)} {NewCustomer.CustomerID} is locked by someone else.");
+                }
+
+                islock = true;
 
                 using var transaction = OpenTransactionScope(DefaultTimeout);
                 var rows = await context.AddCustomerAsync(NewCustomer, DefaultTimeout, TaskCancellationToken);
@@ -72,6 +84,13 @@ namespace SqliteDemo.Logic
             catch (Exception ex)
             {
                 throw LogException(ex);
+            }
+            finally
+            {
+                if (islock)
+                {
+                    _operationLock.TryRemove(NewCustomer.CustomerID, out var _);
+                }
             }
         }
     }
