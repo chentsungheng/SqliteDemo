@@ -80,6 +80,7 @@ namespace SqliteDemo.Test.Logic
                 {
                     Assert.That(fakeCustomer.CustomerID, Is.EqualTo(check.ArgAt<string>(0)));
 
+                    // 在第2次呼叫把物件加入清單
                     if (count++ == 1)
                     {
                         results.Add(fakeCustomer);
@@ -100,6 +101,55 @@ namespace SqliteDemo.Test.Logic
             Assert.That(actual.CustomerID, Is.EqualTo(fakeCustomer.CustomerID));
 
             fakeRepository.Received().AddCustomerAsync(Arg.Compat.Any<Customer>(), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
+            fakeRepository.Received().GetCustomersAsync(Arg.Compat.Any<string?>(), Arg.Is(nullString), Arg.Is(nullString), Arg.Is(nullString), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
+        }
+
+        [Test(Description = "測試空白參數")]
+        public void AddCustomerAsync_ArgumentException()
+        {
+            var errorData = new Customer
+            {
+                CustomerID = string.Empty,
+                CompanyName = string.Empty
+            };
+            string? nullString = null;
+
+            var fakeRepository = Substitute.For<ICustomerRepository>();
+
+            var fakeFactory = Substitute.For<IRepositoryFactory>();
+            fakeFactory
+                .GetSqliteRepository<ICustomerRepository>()
+                .Returns(fakeRepository);
+
+            using var logic = new CustomerLogic(Substitute.For<IBusinessLogicFactory>(), _settings, _recorder, fakeFactory);
+
+            Assert.ThrowsAsync<ArgumentException>(() => logic.AddCustomerAsync(errorData), "CustomerID is null or empty.");
+
+            fakeRepository.DidNotReceive().AddCustomerAsync(Arg.Compat.Any<Customer>(), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
+            fakeRepository.DidNotReceive().GetCustomersAsync(Arg.Compat.Any<string?>(), Arg.Is(nullString), Arg.Is(nullString), Arg.Is(nullString), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
+        }
+
+        [Test(Description = "測試資料已存在")]
+        public void AddCustomerAsync_InvalidOperationException()
+        {
+            string? nullString = null;
+            var fakeCustomer = _fixture.Create<Customer>();
+
+            var fakeRepository = Substitute.For<ICustomerRepository>();
+            fakeRepository
+                .GetCustomersAsync(Arg.Compat.Any<string?>(), Arg.Is(nullString), Arg.Is(nullString), Arg.Is(nullString), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>())
+                .Returns(_fixture.CreateMany<Customer>(1));
+
+            var fakeFactory = Substitute.For<IRepositoryFactory>();
+            fakeFactory
+                .GetSqliteRepository<ICustomerRepository>()
+                .Returns(fakeRepository);
+
+            using var logic = new CustomerLogic(Substitute.For<IBusinessLogicFactory>(), _settings, _recorder, fakeFactory);
+
+            Assert.ThrowsAsync<InvalidOperationException>(() => logic.AddCustomerAsync(fakeCustomer), $"The CustomerID {fakeCustomer.CustomerID} is exists.");
+
+            fakeRepository.DidNotReceive().AddCustomerAsync(Arg.Compat.Any<Customer>(), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
             fakeRepository.Received().GetCustomersAsync(Arg.Compat.Any<string?>(), Arg.Is(nullString), Arg.Is(nullString), Arg.Is(nullString), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
         }
     }
