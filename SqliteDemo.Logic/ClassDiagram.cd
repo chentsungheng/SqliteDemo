@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="SqliteDemo.Logic.BusinessLogicFactory">
+    <Position X="0.75" Y="3" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAADAACgAACAAAEAAAAAAAAAAAgAAAAAAAAAA=</HashCode>
+      <FileName>BusinessLogicFactory.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SqliteDemo.Logic.Base.LogRecorder">
+    <Position X="4" Y="3" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>ABAIAAAAACAAAAAAAAAAAAAEAAAAAAAAAAAAAAEAAAA=</HashCode>
+      <FileName>Base\LogRecorder.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SqliteDemo.Logic.Base.BusinessLogic">
+    <Position X="10.5" Y="0.75" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAACAAhADgAAAQAAAAAABAAAAgCAEQAgAAAAAAAAAA=</HashCode>
+      <FileName>Base\BusinessLogic.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SqliteDemo.Logic.Base.DataLogic">
+    <Position X="10.5" Y="5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAABABACAAAgAAgAAAAAAAAAAAAAAAAAAAAIAAAAE=</HashCode>
+      <FileName>Base\DataLogic.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SqliteDemo.Logic.CustomerLogic">
+    <Position X="10.5" Y="8.25" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIAAABAAoAAAAAAAAAAAAAQAAAAAAAA=</HashCode>
+      <FileName>CustomerLogic.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Interface Name="SqliteDemo.Logic.IBusinessLogicFactory">
+    <Position X="0.75" Y="0.75" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAgAAAAAAAAAA=</HashCode>
+      <FileName>BusinessLogicFactory.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SqliteDemo.Logic.Base.ILogRecorder">
+    <Position X="4" Y="0.75" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAA=</HashCode>
+      <FileName>Base\LogRecorder.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SqliteDemo.Logic.Base.IBusinessLogic">
+    <Position X="7.25" Y="0.75" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABgAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAA=</HashCode>
+      <FileName>Base\BusinessLogic.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SqliteDemo.Logic.Base.IDataLogic">
+    <Position X="7.25" Y="3" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAgAAgAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Base\DataLogic.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SqliteDemo.Logic.ICustomerLogic">
+    <Position X="7.25" Y="5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIAAAAAAoAAAAAAAAAAAAAQAAAAAAAA=</HashCode>
+      <FileName>CustomerLogic.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Microsoft JhengHei UI" Size="9" />
+</ClassDiagram>
