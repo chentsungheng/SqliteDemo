@@ -26,14 +26,14 @@ namespace SqliteDemo.Logic.Base
 
         public bool IsAutoDisposeRepository { get; private set; }
 
-        protected double DefaultTimeout { get; set; }
+        protected int DefaultTimeout { get; set; }
 
         protected DataLogic(IBusinessLogicFactory BusinessLogicFactory, AppSettings? Settings = null, ILogRecorder? LogRecorder = null, IRepositoryFactory? RepositoryFactory = null) : base(BusinessLogicFactory, Settings, LogRecorder)
         {
             IsAutoDisposeRepository = RepositoryFactory == null;
             this.RepositoryFactory = RepositoryFactory ?? new RepositoryFactory(this.Settings);
 
-            DefaultTimeout = 20.0;
+            DefaultTimeout = 20;
         }
 
         protected override void Dispose(bool Disposing)
@@ -73,11 +73,11 @@ namespace SqliteDemo.Logic.Base
         }
 
         /// <summary>
-        /// 建立SQL儲存體物件
+        /// 建立Sqlite儲存體物件
         /// </summary>
         /// <typeparam name="TRepository">儲存體型別</typeparam>
         /// <returns></returns>
-        protected virtual TRepository CreateSqlRepository<TRepository>()
+        protected virtual TRepository CreateSqliteRepository<TRepository>()
         {
             return RepositoryFactory.GetSqliteRepository<TRepository>();
         }

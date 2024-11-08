@@ -38,6 +38,14 @@ namespace SqliteDemo.Logic
 
         private void RegisterLogic()
         {
+            _kernel
+                .Bind<ICustomerLogic>()
+                .To<CustomerLogic>()
+                .InSingletonScope()
+                .WithConstructorArgument(GetType().Name, context => this)
+                .WithConstructorArgument(nameof(Settings), context => Settings)
+                .WithConstructorArgument(LogRecorder, context => null)
+                .WithConstructorArgument(RepositoryFactory, context => null);
         }
 
         protected virtual void Dispose(bool Disposing)
