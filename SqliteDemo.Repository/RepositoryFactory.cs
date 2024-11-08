@@ -8,8 +8,16 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("SqliteDemo.Test")]
 namespace SqliteDemo.Repository
 {
+    /// <summary>
+    /// 儲存庫工廠
+    /// </summary>
     public interface IRepositoryFactory : IDisposable
     {
+        /// <summary>
+        /// 取得Sqlite儲存體
+        /// </summary>
+        /// <typeparam name="TRepository">儲存體型別</typeparam>
+        /// <returns></returns>
         TRepository GetSqliteRepository<TRepository>();
     }
 

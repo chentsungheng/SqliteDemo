@@ -11,6 +11,8 @@ namespace SqliteDemo.Repository
         Task<IEnumerable<Customer>> GetCustomersAsync(string? CustomerID, string? CompanyName, string? Region, string? PostalCode, int Timeout = 30, CancellationToken SqlCancellationToken = default);
 
         Task<int> AddCustomerAsync(Customer Data, int Timeout = 30, CancellationToken SqlCancellationToken = default);
+
+        Task<int> UpdateCustomerAsync(string CustomerID, Customer Data, int Timeout = 30, CancellationToken SqlCancellationToken = default);
     }
 
     internal class CustomerRepository : SqliteRepository, ICustomerRepository
@@ -69,6 +71,42 @@ namespace SqliteDemo.Repository
                 Data.Phone,
                 Data.Fax
             };
+
+            return await Connection.ExecuteAsync(GetCommand(CommandType.Text, command.ToString(), parameters, null, Timeout, SqlCancellationToken));
+        }
+
+        public async Task<int> UpdateCustomerAsync(string CustomerID, Customer Data, int Timeout = 30, CancellationToken SqlCancellationToken = default)
+        {
+            var values = new List<string>();
+            var parameters = new
+            {
+                CustomerID,
+                Data.CompanyName,
+                Data.ContactName,
+                Data.ContactTitle,
+                Data.Address,
+                Data.City,
+                Data.Region,
+                Data.PostalCode,
+                Data.Country,
+                Data.Phone,
+                Data.Fax
+            };
+
+            foreach (var property in Data.GetType().GetProperties().Select(p => new { p.Name }))
+            {
+                // 跳過主鍵
+                if (property.Name.Equals(nameof(CustomerID), StringComparison.CurrentCultureIgnoreCase))
+                {
+                    continue;
+                }
+
+                values.Add($" {property.Name} = @{property.Name}");
+            }
+
+            var command = new StringBuilder("UPDATE Customers SET");
+            command.Append(string.Join(',', values));
+            command.Append($" WHERE {nameof(CustomerID)} = @{nameof(CustomerID)}");
 
             return await Connection.ExecuteAsync(GetCommand(CommandType.Text, command.ToString(), parameters, null, Timeout, SqlCancellationToken));
         }
