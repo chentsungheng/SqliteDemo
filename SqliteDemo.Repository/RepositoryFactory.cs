@@ -46,7 +46,14 @@ namespace SqliteDemo.Repository
 
         private void InitialConnection()
         {
-            var builder = new SqliteConnectionStringBuilder() { DataSource = _appSettings.SqliteDatabase[_appSettings.Stage].Path };
+            var builder = new SqliteConnectionStringBuilder()
+            {
+                DataSource = _appSettings.SqliteDatabase[_appSettings.Stage].Path,
+                Pooling = true,
+                DefaultTimeout = 30,
+                Cache = SqliteCacheMode.Default
+            };
+
             DbConnection = new SqliteConnection(builder.ConnectionString);
         }
 

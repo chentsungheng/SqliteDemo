@@ -19,7 +19,7 @@ namespace SqliteDemo.Test.Repository
         {
             using var factory = new RepositoryFactory(_settings);
             var context = factory.GetSqliteRepository<ICustomerRepository>();
-            var actual = context.GetCustomersAsync(null, null, null, null).Result;
+            var actual = context.GetCustomersAsync("FISSA", null, null, "28034").Result;
 
             Assert.That(actual, Is.Not.Null);
             Assert.That(actual.Count(), Is.GreaterThan(0));
