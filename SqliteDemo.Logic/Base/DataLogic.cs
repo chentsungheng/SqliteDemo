@@ -1,5 +1,6 @@
 ﻿using SqliteDemo.Model;
 using SqliteDemo.Repository;
+using System.Data;
 using System.Transactions;
 
 namespace SqliteDemo.Logic.Base
@@ -60,7 +61,7 @@ namespace SqliteDemo.Logic.Base
         /// 開啟資料交易
         /// </summary>
         /// <returns></returns>
-        protected virtual TransactionScope OpenTransactionScope(double TransactionTimeout, IsolationLevel TransactionIsolation = IsolationLevel.ReadCommitted)
+        protected virtual TransactionScope OpenTransactionScope(double TransactionTimeout, System.Transactions.IsolationLevel TransactionIsolation = System.Transactions.IsolationLevel.ReadCommitted)
         {
             if (Transaction.Current == null)
             {
@@ -70,6 +71,24 @@ namespace SqliteDemo.Logic.Base
             {
                 return new TransactionScope(Transaction.Current, TransactionScopeAsyncFlowOption.Enabled);
             }
+        }
+
+        /// <summary>
+        /// 開啟資料交易
+        /// </summary>
+        /// <param name="TransactionLevel">隔離層級</param>
+        /// <returns></returns>
+        protected virtual IDbTransaction OpenDbTransaction(System.Data.IsolationLevel TransactionLevel = System.Data.IsolationLevel.ReadCommitted)
+        {
+            return RepositoryFactory.BeginDbTransaction(TransactionLevel);
+        }
+
+        /// <summary>
+        /// 關閉連線
+        /// </summary>
+        protected virtual void CloseDbConnection()
+        {
+            RepositoryFactory.CloseDbConnection();
         }
 
         /// <summary>

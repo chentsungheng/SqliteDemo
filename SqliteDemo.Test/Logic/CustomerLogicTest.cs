@@ -4,6 +4,7 @@ using SqliteDemo.Logic;
 using SqliteDemo.Logic.Base;
 using SqliteDemo.Model;
 using SqliteDemo.Repository;
+using System.Data;
 
 namespace SqliteDemo.Test.Logic
 {
@@ -72,10 +73,10 @@ namespace SqliteDemo.Test.Logic
 
             var fakeRepository = Substitute.For<ICustomerRepository>();
             fakeRepository
-                .GetCustomersAsync(Arg.Compat.Any<string?>(), Arg.Is(nullString), Arg.Is(nullString), Arg.Is(nullString), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>())
+                .GetCustomersAsync(Arg.Compat.Any<string?>(), Arg.Is(nullString), Arg.Is(nullString), Arg.Is(nullString), Arg.Compat.Any<IDbTransaction>(), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>())
                 .Returns(results);
             fakeRepository
-                .When(calling => calling.GetCustomersAsync(Arg.Compat.Any<string>(), Arg.Is(nullString), Arg.Is(nullString), Arg.Is(nullString), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>()))
+                .When(calling => calling.GetCustomersAsync(Arg.Compat.Any<string>(), Arg.Is(nullString), Arg.Is(nullString), Arg.Is(nullString), Arg.Compat.Any<IDbTransaction>(), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>()))
                 .Do(check =>
                 {
                     Assert.That(fakeCustomer.CustomerID, Is.EqualTo(check.ArgAt<string>(0)));
@@ -87,7 +88,7 @@ namespace SqliteDemo.Test.Logic
                     }
                 });
             fakeRepository
-                .AddCustomerAsync(Arg.Compat.Any<Customer>(), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>())
+                .AddCustomerAsync(Arg.Compat.Any<Customer>(), Arg.Compat.Any<IDbTransaction>(), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>())
                 .Returns(1);
 
             var fakeFactory = Substitute.For<IRepositoryFactory>();
@@ -100,8 +101,8 @@ namespace SqliteDemo.Test.Logic
 
             Assert.That(actual.CustomerID, Is.EqualTo(fakeCustomer.CustomerID));
 
-            fakeRepository.Received().AddCustomerAsync(Arg.Compat.Any<Customer>(), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
-            fakeRepository.Received().GetCustomersAsync(Arg.Compat.Any<string?>(), Arg.Is(nullString), Arg.Is(nullString), Arg.Is(nullString), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
+            fakeRepository.Received().AddCustomerAsync(Arg.Compat.Any<Customer>(), Arg.Compat.Any<IDbTransaction>(), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
+            fakeRepository.Received().GetCustomersAsync(Arg.Compat.Any<string?>(), Arg.Is(nullString), Arg.Is(nullString), Arg.Is(nullString), Arg.Compat.Any<IDbTransaction>(), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
         }
 
         [Test(Description = "測試空白參數")]
@@ -125,8 +126,8 @@ namespace SqliteDemo.Test.Logic
 
             Assert.ThrowsAsync<ArgumentException>(() => logic.AddCustomerAsync(errorData), "CustomerID is null or empty.");
 
-            fakeRepository.DidNotReceive().AddCustomerAsync(Arg.Compat.Any<Customer>(), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
-            fakeRepository.DidNotReceive().GetCustomersAsync(Arg.Compat.Any<string?>(), Arg.Is(nullString), Arg.Is(nullString), Arg.Is(nullString), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
+            fakeRepository.DidNotReceive().AddCustomerAsync(Arg.Compat.Any<Customer>(), Arg.Compat.Any<IDbTransaction>(), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
+            fakeRepository.DidNotReceive().GetCustomersAsync(Arg.Compat.Any<string?>(), Arg.Is(nullString), Arg.Is(nullString), Arg.Is(nullString), Arg.Compat.Any<IDbTransaction>(), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
         }
 
         [Test(Description = "測試資料已存在")]
@@ -137,7 +138,7 @@ namespace SqliteDemo.Test.Logic
 
             var fakeRepository = Substitute.For<ICustomerRepository>();
             fakeRepository
-                .GetCustomersAsync(Arg.Compat.Any<string?>(), Arg.Is(nullString), Arg.Is(nullString), Arg.Is(nullString), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>())
+                .GetCustomersAsync(Arg.Compat.Any<string?>(), Arg.Is(nullString), Arg.Is(nullString), Arg.Is(nullString), Arg.Compat.Any<IDbTransaction>(), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>())
                 .Returns(_fixture.CreateMany<Customer>(1));
 
             var fakeFactory = Substitute.For<IRepositoryFactory>();
@@ -149,8 +150,8 @@ namespace SqliteDemo.Test.Logic
 
             Assert.ThrowsAsync<InvalidOperationException>(() => logic.AddCustomerAsync(fakeCustomer), $"The CustomerID {fakeCustomer.CustomerID} is exists.");
 
-            fakeRepository.DidNotReceive().AddCustomerAsync(Arg.Compat.Any<Customer>(), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
-            fakeRepository.Received().GetCustomersAsync(Arg.Compat.Any<string?>(), Arg.Is(nullString), Arg.Is(nullString), Arg.Is(nullString), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
+            fakeRepository.DidNotReceive().AddCustomerAsync(Arg.Compat.Any<Customer>(), Arg.Compat.Any<IDbTransaction>(), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
+            fakeRepository.Received().GetCustomersAsync(Arg.Compat.Any<string?>(), Arg.Is(nullString), Arg.Is(nullString), Arg.Is(nullString), Arg.Compat.Any<IDbTransaction>(), Arg.Compat.Any<int>(), Arg.Compat.Any<CancellationToken>());
         }
 
         [Test(Description = "更新customer"), Ignore("避免存取DB")]

@@ -30,8 +30,15 @@ namespace SqliteDemo.Logic
             try
             {
                 var context = CreateSqliteRepository<ICustomerRepository>();
+                LogEvent("Log search parameters.", new
+                {
+                    CustomerID,
+                    CompanyName,
+                    Region,
+                    PostalCode
+                });
 
-                return await context.GetCustomersAsync(CustomerID, CompanyName, Region, PostalCode, DefaultTimeout, TaskCancellationToken);
+                return await context.GetCustomersAsync(CustomerID, CompanyName, Region, PostalCode, null, DefaultTimeout, TaskCancellationToken);
             }
             catch (Exception ex)
             {
@@ -55,7 +62,7 @@ namespace SqliteDemo.Logic
                 }
 
                 var context = CreateSqliteRepository<ICustomerRepository>();
-                var exists = await context.GetCustomersAsync(NewCustomer.CustomerID, null, null, null, DefaultTimeout, TaskCancellationToken);
+                var exists = await context.GetCustomersAsync(NewCustomer.CustomerID, null, null, null, null, DefaultTimeout, TaskCancellationToken);
 
                 // 相同ID已存在
                 if (exists.Any())
@@ -70,8 +77,8 @@ namespace SqliteDemo.Logic
 
                 islock = true;
 
-                using var transaction = OpenTransactionScope(DefaultTimeout);
-                var rows = await context.AddCustomerAsync(NewCustomer, DefaultTimeout, TaskCancellationToken);
+                using var transaction = OpenDbTransaction();
+                var rows = await context.AddCustomerAsync(NewCustomer, transaction, DefaultTimeout, TaskCancellationToken);
 
                 // 新增失敗
                 if (rows == 0)
@@ -79,9 +86,9 @@ namespace SqliteDemo.Logic
                     throw new SqliteException("Add customer is failed.", 1);
                 }
 
-                transaction.Complete();
+                transaction.Commit();
 
-                exists = await context.GetCustomersAsync(NewCustomer.CustomerID, null, null, null, DefaultTimeout, TaskCancellationToken);
+                exists = await context.GetCustomersAsync(NewCustomer.CustomerID, null, null, null, null, DefaultTimeout, TaskCancellationToken);
 
                 return exists.Single();
             }
@@ -91,9 +98,11 @@ namespace SqliteDemo.Logic
             }
             finally
             {
+                CloseDbConnection();
+
                 if (islock)
                 {
-                    _operationLock.TryRemove(NewCustomer.CustomerID, out var _);
+                    _operationLock.TryRemove(NewCustomer.CustomerID, out _);
                 }
             }
         }
@@ -114,7 +123,7 @@ namespace SqliteDemo.Logic
                 }
 
                 var context = CreateSqliteRepository<ICustomerRepository>();
-                var exists = await context.GetCustomersAsync(ExistCustomer.CustomerID, null, null, null, DefaultTimeout, TaskCancellationToken);
+                var exists = await context.GetCustomersAsync(ExistCustomer.CustomerID, null, null, null, null, DefaultTimeout, TaskCancellationToken);
 
                 // 資料不存在
                 if (!exists.Any())
@@ -129,8 +138,8 @@ namespace SqliteDemo.Logic
 
                 islock = true;
 
-                using var transaction = OpenTransactionScope(DefaultTimeout);
-                var rows = await context.UpdateCustomerAsync(CustomerID, ExistCustomer, DefaultTimeout, TaskCancellationToken);
+                using var transaction = OpenDbTransaction();
+                var rows = await context.UpdateCustomerAsync(CustomerID, ExistCustomer, transaction, DefaultTimeout, TaskCancellationToken);
 
                 // 更新失敗
                 if (rows == 0)
@@ -138,9 +147,9 @@ namespace SqliteDemo.Logic
                     throw new SqliteException("Update customer is failed.", 1);
                 }
 
-                transaction.Complete();
+                transaction.Commit();
 
-                exists = await context.GetCustomersAsync(ExistCustomer.CustomerID, null, null, null, DefaultTimeout, TaskCancellationToken);
+                exists = await context.GetCustomersAsync(ExistCustomer.CustomerID, null, null, null, null, DefaultTimeout, TaskCancellationToken);
 
                 return exists.Single();
             }
@@ -150,34 +159,48 @@ namespace SqliteDemo.Logic
             }
             finally
             {
+                CloseDbConnection();
+
                 if (islock)
                 {
-                    _operationLock.TryRemove(ExistCustomer.CustomerID, out var _);
+                    _operationLock.TryRemove(ExistCustomer.CustomerID, out _);
                 }
             }
         }
 
         public async Task<CustomerDeleted> DeleteCustomerAsync(string CustomerID, CancellationToken TaskCancellationToken = default)
         {
+            var islock = false;
+
             try
             {
                 var context = CreateSqliteRepository<ICustomerRepository>();
-                var exists = await context.GetCustomersAsync(CustomerID, null, null, null, DefaultTimeout, TaskCancellationToken);
+                var exists = await context.GetCustomersAsync(CustomerID, null, null, null, null, DefaultTimeout, TaskCancellationToken);
 
                 // 資料不存在
                 if (!exists.Any())
                 {
                     throw new InvalidOperationException($"The {nameof(CustomerID)} {CustomerID} is not exists.");
                 }
+                // 有另一個執行緒正在操作此ID
+                if (!_operationLock.TryAdd(CustomerID, "delete"))
+                {
+                    throw new InvalidOperationException($"The {nameof(CustomerID)} {CustomerID} is locked by someone else.");
+                }
 
+                islock = true;
+
+                using var transaction = OpenDbTransaction();
                 var exist = exists.Single();
-                var rows = await context.DeleteCustomerAsync(exist.CustomerID, DefaultTimeout, TaskCancellationToken);
+                var rows = await context.DeleteCustomerAsync(exist.CustomerID, transaction, DefaultTimeout, TaskCancellationToken);
 
                 // 刪除失敗
                 if (rows == 0)
                 {
                     throw new SqliteException("Delete customer is failed.", 1);
                 }
+
+                transaction.Commit();
 
                 return new CustomerDeleted
                 {
@@ -188,6 +211,15 @@ namespace SqliteDemo.Logic
             catch (Exception ex)
             {
                 throw LogException(ex);
+            }
+            finally
+            {
+                CloseDbConnection();
+
+                if (islock)
+                {
+                    _operationLock.TryRemove(CustomerID, out _);
+                }
             }
         }
     }

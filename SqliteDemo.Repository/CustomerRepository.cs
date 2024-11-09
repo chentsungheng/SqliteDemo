@@ -8,13 +8,13 @@ namespace SqliteDemo.Repository
 {
     public interface ICustomerRepository : ISqliteRepository
     {
-        Task<IEnumerable<Customer>> GetCustomersAsync(string? CustomerID, string? CompanyName, string? Region, string? PostalCode, int Timeout = 30, CancellationToken SqlCancellationToken = default);
+        Task<IEnumerable<Customer>> GetCustomersAsync(string? CustomerID, string? CompanyName, string? Region, string? PostalCode, IDbTransaction? Transaction = null, int Timeout = 30, CancellationToken SqlCancellationToken = default);
 
-        Task<int> AddCustomerAsync(Customer Data, int Timeout = 30, CancellationToken SqlCancellationToken = default);
+        Task<int> AddCustomerAsync(Customer Data, IDbTransaction? Transaction = null, int Timeout = 30, CancellationToken SqlCancellationToken = default);
 
-        Task<int> UpdateCustomerAsync(string CustomerID, Customer Data, int Timeout = 30, CancellationToken SqlCancellationToken = default);
+        Task<int> UpdateCustomerAsync(string CustomerID, Customer Data, IDbTransaction? Transaction = null, int Timeout = 30, CancellationToken SqlCancellationToken = default);
 
-        Task<int> DeleteCustomerAsync(string CustomerID, int Timeout = 30, CancellationToken SqlCancellationToken = default);
+        Task<int> DeleteCustomerAsync(string CustomerID, IDbTransaction? Transaction = null, int Timeout = 30, CancellationToken SqlCancellationToken = default);
     }
 
     internal class CustomerRepository : SqliteRepository, ICustomerRepository
@@ -23,7 +23,7 @@ namespace SqliteDemo.Repository
         {
         }
 
-        public async Task<IEnumerable<Customer>> GetCustomersAsync(string? CustomerID, string? CompanyName, string? Region, string? PostalCode, int Timeout = 30, CancellationToken SqlCancellationToken = default)
+        public async Task<IEnumerable<Customer>> GetCustomersAsync(string? CustomerID, string? CompanyName, string? Region, string? PostalCode, IDbTransaction? Transaction = null, int Timeout = 30, CancellationToken SqlCancellationToken = default)
         {
             var columns = ConvertToColumnString<Customer>();
             var command = new StringBuilder($"SELECT {columns} FROM Customers WHERE 1 = 1");
@@ -52,10 +52,10 @@ namespace SqliteDemo.Repository
                 command.Append($" AND {nameof(PostalCode)} = @{nameof(PostalCode)}");
             }
 
-            return await Connection.QueryAsync<Customer>(GetCommand(CommandType.Text, command.ToString(), parameters, null, Timeout, SqlCancellationToken));
+            return await Connection.QueryAsync<Customer>(GetCommand(CommandType.Text, command.ToString(), parameters, Transaction, Timeout, SqlCancellationToken));
         }
 
-        public async Task<int> AddCustomerAsync(Customer Data, int Timeout = 30, CancellationToken SqlCancellationToken = default)
+        public async Task<int> AddCustomerAsync(Customer Data, IDbTransaction? Transaction = null, int Timeout = 30, CancellationToken SqlCancellationToken = default)
         {
             var columns = ConvertToColumnString<Customer>();
             var command = new StringBuilder($"INSERT INTO Customers ({columns}) VALUES (@{nameof(Data.CustomerID)}, @{nameof(Data.CompanyName)}, @{nameof(Data.ContactName)}, @{nameof(Data.ContactTitle)}, @{nameof(Data.Address)}, @{nameof(Data.City)}, @{nameof(Data.Region)}, @{nameof(Data.PostalCode)}, @{nameof(Data.Country)}, @{nameof(Data.Phone)}, @{nameof(Data.Fax)})");
@@ -74,10 +74,10 @@ namespace SqliteDemo.Repository
                 Data.Fax
             };
 
-            return await Connection.ExecuteAsync(GetCommand(CommandType.Text, command.ToString(), parameters, null, Timeout, SqlCancellationToken));
+            return await Connection.ExecuteAsync(GetCommand(CommandType.Text, command.ToString(), parameters, Transaction, Timeout, SqlCancellationToken));
         }
 
-        public async Task<int> UpdateCustomerAsync(string CustomerID, Customer Data, int Timeout = 30, CancellationToken SqlCancellationToken = default)
+        public async Task<int> UpdateCustomerAsync(string CustomerID, Customer Data, IDbTransaction? Transaction = null, int Timeout = 30, CancellationToken SqlCancellationToken = default)
         {
             var values = new List<string>();
             var parameters = new
@@ -110,10 +110,10 @@ namespace SqliteDemo.Repository
             command.Append(string.Join(',', values));
             command.Append($" WHERE {nameof(CustomerID)} = @{nameof(CustomerID)}");
 
-            return await Connection.ExecuteAsync(GetCommand(CommandType.Text, command.ToString(), parameters, null, Timeout, SqlCancellationToken));
+            return await Connection.ExecuteAsync(GetCommand(CommandType.Text, command.ToString(), parameters, Transaction, Timeout, SqlCancellationToken));
         }
 
-        public async Task<int> DeleteCustomerAsync(string CustomerID, int Timeout = 30, CancellationToken SqlCancellationToken = default)
+        public async Task<int> DeleteCustomerAsync(string CustomerID, IDbTransaction? Transaction = null, int Timeout = 30, CancellationToken SqlCancellationToken = default)
         {
             var command = $"DELETE FROM Customers WHERE {nameof(CustomerID)} = @{nameof(CustomerID)}";
             var parameters = new
@@ -121,7 +121,7 @@ namespace SqliteDemo.Repository
                 CustomerID
             };
 
-            return await Connection.ExecuteAsync(GetCommand(CommandType.Text, command, parameters, null, Timeout, SqlCancellationToken));
+            return await Connection.ExecuteAsync(GetCommand(CommandType.Text, command, parameters, Transaction, Timeout, SqlCancellationToken));
         }
     }
 }

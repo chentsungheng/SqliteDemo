@@ -14,6 +14,18 @@ namespace SqliteDemo.Repository
     public interface IRepositoryFactory : IDisposable
     {
         /// <summary>
+        /// 開啟交易
+        /// </summary>
+        /// <param name="TransactionLevel"></param>
+        /// <returns></returns>
+        IDbTransaction BeginDbTransaction(IsolationLevel TransactionLevel);
+
+        /// <summary>
+        /// 關閉連線
+        /// </summary>
+        void CloseDbConnection();
+
+        /// <summary>
         /// 取得Sqlite儲存體
         /// </summary>
         /// <typeparam name="TRepository">儲存體型別</typeparam>
@@ -72,6 +84,28 @@ namespace SqliteDemo.Repository
                 .To<CustomerRepository>()
                 .InSingletonScope()
                 .WithConstructorArgument(Connection, context => null);
+        }
+
+        public IDbTransaction BeginDbTransaction(IsolationLevel TransactionLevel)
+        {
+            if (DbConnection == null)
+            {
+                throw new InvalidOperationException($"{nameof(DbConnection)} is null.");
+            }
+            if (DbConnection.State == ConnectionState.Closed)
+            {
+                DbConnection.Open();
+            }
+
+            return DbConnection.BeginTransaction(TransactionLevel);
+        }
+
+        public void CloseDbConnection()
+        {
+            if (DbConnection != null && DbConnection.State == ConnectionState.Open)
+            {
+                DbConnection.Close();
+            }
         }
 
         public TRepository GetSqliteRepository<TRepository>()
