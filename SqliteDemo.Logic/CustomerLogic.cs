@@ -6,14 +6,45 @@ using System.Collections.Concurrent;
 
 namespace SqliteDemo.Logic
 {
+    /// <summary>
+    /// 顧客商業邏輯
+    /// </summary>
     public interface ICustomerLogic : IDataLogic
     {
+        /// <summary>
+        /// 查詢顧客資料
+        /// </summary>
+        /// <param name="CustomerID">顧客識別碼</param>
+        /// <param name="CompanyName">公司名稱</param>
+        /// <param name="Region">區域</param>
+        /// <param name="PostalCode">郵遞區號</param>
+        /// <param name="TaskCancellationToken">取消物件</param>
+        /// <returns></returns>
         Task<IEnumerable<Customer>> GetCustomersAsync(string? CustomerID, string? CompanyName, string? Region, string? PostalCode, CancellationToken TaskCancellationToken = default);
 
+        /// <summary>
+        /// 新增顧客資料
+        /// </summary>
+        /// <param name="NewCustomer">新顧客資料</param>
+        /// <param name="TaskCancellationToken">取消物件</param>
+        /// <returns></returns>
         Task<Customer> AddCustomerAsync(Customer NewCustomer, CancellationToken TaskCancellationToken = default);
 
+        /// <summary>
+        /// 更新顧客資料
+        /// </summary>
+        /// <param name="CustomerID">顧客識別碼</param>
+        /// <param name="ExistCustomer">更新資料</param>
+        /// <param name="TaskCancellationToken">取消物件</param>
+        /// <returns></returns>
         Task<Customer> UpdateCustomerAsync(string CustomerID, CustomerForUpdate ExistCustomer, CancellationToken TaskCancellationToken = default);
 
+        /// <summary>
+        /// 刪除顧客資料
+        /// </summary>
+        /// <param name="CustomerID">顧客識別碼</param>
+        /// <param name="TaskCancellationToken">取消物件</param>
+        /// <returns></returns>
         Task<CustomerDeleted> DeleteCustomerAsync(string CustomerID, CancellationToken TaskCancellationToken = default);
     }
 
@@ -89,6 +120,7 @@ namespace SqliteDemo.Logic
                 }
 
                 transaction.Commit();
+                LogEvent("Successfully added customer information.", NewCustomer);
 
                 exists = await context.GetCustomersAsync(NewCustomer.CustomerID, null, null, null, null, DefaultTimeout, TaskCancellationToken);
 
@@ -150,6 +182,7 @@ namespace SqliteDemo.Logic
                 }
 
                 transaction.Commit();
+                LogEvent("Successfully updated customer information.", ExistCustomer);
 
                 exists = await context.GetCustomersAsync(CustomerID, null, null, null, null, DefaultTimeout, TaskCancellationToken);
 
@@ -202,6 +235,7 @@ namespace SqliteDemo.Logic
                 }
 
                 transaction.Commit();
+                LogEvent("Successfully deleted customer information.", new { CustomerID });
 
                 return new CustomerDeleted
                 {
