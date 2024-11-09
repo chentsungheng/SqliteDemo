@@ -1,10 +1,8 @@
 ﻿namespace SqliteDemo.Model
 {
-    public class Customer
+    public class CustomerForUpdate
     {
-        public string CustomerID { get; set; } = default!;
-
-        public string CompanyName { get; set; } = default!;
+        public string? CompanyName { get; set; }
 
         public string? ContactName { get; set; }
 
@@ -23,5 +21,10 @@
         public string? Phone { get; set; }
 
         public string? Fax { get; set; }
+    }
+
+    public class Customer : CustomerForUpdate
+    {
+        public string? CustomerID { get; set; }
     }
 }

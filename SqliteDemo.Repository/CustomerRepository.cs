@@ -12,7 +12,7 @@ namespace SqliteDemo.Repository
 
         Task<int> AddCustomerAsync(Customer Data, IDbTransaction? Transaction = null, int Timeout = 30, CancellationToken SqlCancellationToken = default);
 
-        Task<int> UpdateCustomerAsync(string CustomerID, Customer Data, IDbTransaction? Transaction = null, int Timeout = 30, CancellationToken SqlCancellationToken = default);
+        Task<int> UpdateCustomerAsync(string CustomerID, CustomerForUpdate Data, IDbTransaction? Transaction = null, int Timeout = 30, CancellationToken SqlCancellationToken = default);
 
         Task<int> DeleteCustomerAsync(string CustomerID, IDbTransaction? Transaction = null, int Timeout = 30, CancellationToken SqlCancellationToken = default);
     }
@@ -77,7 +77,7 @@ namespace SqliteDemo.Repository
             return await Connection.ExecuteAsync(GetCommand(CommandType.Text, command.ToString(), parameters, Transaction, Timeout, SqlCancellationToken));
         }
 
-        public async Task<int> UpdateCustomerAsync(string CustomerID, Customer Data, IDbTransaction? Transaction = null, int Timeout = 30, CancellationToken SqlCancellationToken = default)
+        public async Task<int> UpdateCustomerAsync(string CustomerID, CustomerForUpdate Data, IDbTransaction? Transaction = null, int Timeout = 30, CancellationToken SqlCancellationToken = default)
         {
             var values = new List<string>();
             var parameters = new
@@ -97,12 +97,6 @@ namespace SqliteDemo.Repository
 
             foreach (var property in Data.GetType().GetProperties().Select(p => new { p.Name }))
             {
-                // 跳過主鍵
-                if (property.Name.Equals(nameof(CustomerID), StringComparison.CurrentCultureIgnoreCase))
-                {
-                    continue;
-                }
-
                 values.Add($" {property.Name} = @{property.Name}");
             }
 

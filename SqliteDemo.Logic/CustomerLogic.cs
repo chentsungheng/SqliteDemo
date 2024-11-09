@@ -12,7 +12,7 @@ namespace SqliteDemo.Logic
 
         Task<Customer> AddCustomerAsync(Customer NewCustomer, CancellationToken TaskCancellationToken = default);
 
-        Task<Customer> UpdateCustomerAsync(string CustomerID, Customer ExistCustomer, CancellationToken TaskCancellationToken = default);
+        Task<Customer> UpdateCustomerAsync(string CustomerID, CustomerForUpdate ExistCustomer, CancellationToken TaskCancellationToken = default);
 
         Task<CustomerDeleted> DeleteCustomerAsync(string CustomerID, CancellationToken TaskCancellationToken = default);
     }
@@ -49,6 +49,7 @@ namespace SqliteDemo.Logic
         public async Task<Customer> AddCustomerAsync(Customer NewCustomer, CancellationToken TaskCancellationToken = default)
         {
             var islock = false;
+            var id = string.Empty;
 
             try
             {
@@ -76,6 +77,7 @@ namespace SqliteDemo.Logic
                 }
 
                 islock = true;
+                id = NewCustomer.CustomerID;
 
                 using var transaction = OpenDbTransaction();
                 var rows = await context.AddCustomerAsync(NewCustomer, transaction, DefaultTimeout, TaskCancellationToken);
@@ -100,14 +102,14 @@ namespace SqliteDemo.Logic
             {
                 CloseDbConnection();
 
-                if (islock)
+                if (islock && !string.IsNullOrEmpty(id))
                 {
-                    _operationLock.TryRemove(NewCustomer.CustomerID, out _);
+                    _operationLock.TryRemove(id, out _);
                 }
             }
         }
 
-        public async Task<Customer> UpdateCustomerAsync(string CustomerID, Customer ExistCustomer, CancellationToken TaskCancellationToken = default)
+        public async Task<Customer> UpdateCustomerAsync(string CustomerID, CustomerForUpdate ExistCustomer, CancellationToken TaskCancellationToken = default)
         {
             var islock = false;
 
@@ -123,17 +125,17 @@ namespace SqliteDemo.Logic
                 }
 
                 var context = CreateSqliteRepository<ICustomerRepository>();
-                var exists = await context.GetCustomersAsync(ExistCustomer.CustomerID, null, null, null, null, DefaultTimeout, TaskCancellationToken);
+                var exists = await context.GetCustomersAsync(CustomerID, null, null, null, null, DefaultTimeout, TaskCancellationToken);
 
                 // 資料不存在
-                if (!exists.Any())
+                if (exists.Count() != 1)
                 {
-                    throw new InvalidOperationException($"The {nameof(ExistCustomer.CustomerID)} {ExistCustomer.CustomerID} is not exists.");
+                    throw new InvalidOperationException($"Unable to determine {CustomerID} information.");
                 }
                 // 有另一個執行緒正在操作此ID
-                if (!_operationLock.TryAdd(ExistCustomer.CustomerID, "update"))
+                if (!_operationLock.TryAdd(CustomerID, "update"))
                 {
-                    throw new InvalidOperationException($"The {nameof(ExistCustomer.CustomerID)} {ExistCustomer.CustomerID} is locked by someone else.");
+                    throw new InvalidOperationException($"The {nameof(CustomerID)} {CustomerID} is locked by someone else.");
                 }
 
                 islock = true;
@@ -149,7 +151,7 @@ namespace SqliteDemo.Logic
 
                 transaction.Commit();
 
-                exists = await context.GetCustomersAsync(ExistCustomer.CustomerID, null, null, null, null, DefaultTimeout, TaskCancellationToken);
+                exists = await context.GetCustomersAsync(CustomerID, null, null, null, null, DefaultTimeout, TaskCancellationToken);
 
                 return exists.Single();
             }
@@ -163,7 +165,7 @@ namespace SqliteDemo.Logic
 
                 if (islock)
                 {
-                    _operationLock.TryRemove(ExistCustomer.CustomerID, out _);
+                    _operationLock.TryRemove(CustomerID, out _);
                 }
             }
         }
@@ -178,9 +180,9 @@ namespace SqliteDemo.Logic
                 var exists = await context.GetCustomersAsync(CustomerID, null, null, null, null, DefaultTimeout, TaskCancellationToken);
 
                 // 資料不存在
-                if (!exists.Any())
+                if (exists.Count() != 1)
                 {
-                    throw new InvalidOperationException($"The {nameof(CustomerID)} {CustomerID} is not exists.");
+                    throw new InvalidOperationException($"Unable to determine {CustomerID} information.");
                 }
                 // 有另一個執行緒正在操作此ID
                 if (!_operationLock.TryAdd(CustomerID, "delete"))
@@ -191,8 +193,7 @@ namespace SqliteDemo.Logic
                 islock = true;
 
                 using var transaction = OpenDbTransaction();
-                var exist = exists.Single();
-                var rows = await context.DeleteCustomerAsync(exist.CustomerID, transaction, DefaultTimeout, TaskCancellationToken);
+                var rows = await context.DeleteCustomerAsync(CustomerID, transaction, DefaultTimeout, TaskCancellationToken);
 
                 // 刪除失敗
                 if (rows == 0)
@@ -204,7 +205,7 @@ namespace SqliteDemo.Logic
 
                 return new CustomerDeleted
                 {
-                    CustomerID = exist.CustomerID,
+                    CustomerID = CustomerID,
                     IsDelete = true
                 };
             }

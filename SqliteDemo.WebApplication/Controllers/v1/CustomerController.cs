@@ -53,6 +53,8 @@ namespace SqliteDemo.WebApplication.Controllers.v1
         /// <param name="ID">識別碼</param>
         /// <returns></returns>
         [HttpGet("{ID}"), Produces(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(typeof(Customer), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<ActionResult<Customer?>> GetCustomersAsync(string ID)
         {
             try
@@ -78,6 +80,25 @@ namespace SqliteDemo.WebApplication.Controllers.v1
             try
             {
                 return Ok(await _factory.GetLogic<ICustomerLogic>().AddCustomerAsync(NewCustomer, Request.HttpContext.RequestAborted));
+            }
+            catch (Exception ex)
+            {
+                return new ExceptionObjectResult(ex);
+            }
+        }
+
+        /// <summary>
+        /// 更新顧客資料
+        /// </summary>
+        /// <param name="ID">識別碼</param>
+        /// <param name="ExistCustomer">顧客資料</param>
+        /// <returns></returns>
+        [HttpPatch("{ID}"), Produces(MediaTypeNames.Application.Json), Consumes(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<Customer>> UpdateCustomerAsync(string ID, CustomerForUpdate ExistCustomer)
+        {
+            try
+            {
+                return Ok(await _factory.GetLogic<ICustomerLogic>().UpdateCustomerAsync(ID, ExistCustomer, Request.HttpContext.RequestAborted));
             }
             catch (Exception ex)
             {
