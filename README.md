@@ -18,3 +18,19 @@
 
 ### 開發工具
 - Visual Studio 2022 Community
+
+### 專案相依性
+```mermaid
+graph LR;
+W(WebApplication) --> L(Logic);
+W(WebApplication) --> M(Model);
+
+L(Logic) --> R(Repository);
+L(Logic) --> M(Model);
+
+R(Repository) --> M(Model);
+
+T(Test) --> L(Logic);
+T(Test) --> R(Repository);
+T(Test) --> M(Model);
+```
