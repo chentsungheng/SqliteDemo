@@ -105,5 +105,23 @@ namespace SqliteDemo.WebApplication.Controllers.v1
                 return new ExceptionObjectResult(ex);
             }
         }
+
+        /// <summary>
+        /// 刪除顧客資料
+        /// </summary>
+        /// <param name="ID">識別碼</param>
+        /// <returns></returns>
+        [HttpDelete("{ID}"), Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<CustomerDeleted>> DeleteCustomerAsync(string ID)
+        {
+            try
+            {
+                return Ok(await _factory.GetLogic<ICustomerLogic>().DeleteCustomerAsync(ID, Request.HttpContext.RequestAborted));
+            }
+            catch (Exception ex)
+            {
+                return new ExceptionObjectResult(ex);
+            }
+        }
     }
 }

@@ -27,13 +27,13 @@
   <Class Name="SqliteDemo.Logic.Base.DataLogic">
     <Position X="10.5" Y="5" Width="2.5" />
     <TypeIdentifier>
-      <HashCode>AAAAABABACAAAgAAgAAAAAAAAAAAAAAAAAAAAIAAAAE=</HashCode>
+      <HashCode>AAAAABABACAAAgAAgAAAAAAAAAAAAAAAAAAAEJAAAAE=</HashCode>
       <FileName>Base\DataLogic.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
   <Class Name="SqliteDemo.Logic.CustomerLogic">
-    <Position X="10.5" Y="8.25" Width="2.5" />
+    <Position X="10.5" Y="8.75" Width="2.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAIAAABAAoAAAAAAAAAAAAAQAAAAAAAA=</HashCode>
       <FileName>CustomerLogic.cs</FileName>
